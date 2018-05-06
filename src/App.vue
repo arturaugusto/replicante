@@ -9,26 +9,63 @@
 
     <mt-tab-container v-model="active" :swipeable="false">
 
-      <!-- Log -->
-      <mt-tab-container-item id="log">
-        <div
-          v-for="log in logList"
-          :id="log.id"
-          :key="log.id"
-          :title="log.id"
-          class="log-item"
+      <mt-tab-container-item id="log" ref="logContainer">
+        <!-- Log -->
+        <mt-cell 
+          v-if="logs && !logs.length"
+          title="No logs"
+          label="configure your camera to start logging"
         >
-          <mt-cell 
-            :title="log.date"
+        </mt-cell>
+        
+        <paginate-links
+        v-if="logs.length"
+          for="logs"
+          :container="{
+            state: paginate.logs,
+            el: $refs.logContainer
+          }"
+          :limit="4"
+          :show-step-links="true"
+        />
+
+        <paginate
+          name="logs"
+          :list="logs"
+          :per="10"
+          :container="this"
+        >
+          <div
+            v-for="log in paginated('logs')"
+            :id="log._id"
+            :key="log._id"
+            class="log-item"
           >
-          </mt-cell>
-          <img :src="log.url">
-          <span class="log-actions">
-            <mt-button size="small" type="danger" @click="removeLogHandler(log)">
-              &times Remove
-            </mt-button>
-          </span>
-        </div>
+            <mt-cell 
+              :title="log.date"
+              :label="log._id"
+            >
+            </mt-cell>
+            <img :src="log.url">
+            <div class="log-actions">
+              <mt-button size="small" type="danger" @click="removeLogHandler(log)">
+                &times Remove
+              </mt-button>
+            </div>
+          </div>
+        </paginate>
+
+        <paginate-links
+        v-if="logs.length"
+          for="logs"
+          :container="{
+            state: paginate.logs,
+            el: $refs.logContainer
+          }"
+          :limit="4"
+          :show-step-links="true"
+        />
+
       </mt-tab-container-item>
 
       <!-- Camera -->
@@ -67,13 +104,44 @@
       <!-- Replication -->
 
       <mt-tab-container-item id="replication">
-        <form id="replication-form">
+        <form v-if="logged === false" id="replication-form" @change="replicationFormHandler">
           <mt-field label="address" placeholder="Input server address" type="url" v-model="replication.address"></mt-field>
+          <mt-field label="db name" placeholder="Input database name" v-model="replication.dbname"></mt-field>
           <mt-field label="username" placeholder="Input username" v-model="replication.username"></mt-field>
           <mt-field label="password" placeholder="Input password" type="password" v-model="replication.password"></mt-field>
 
           <mt-button type="primary" @click="loginHandler">Login</mt-button>
         </form>
+
+        <span v-if="logged">
+          <mt-cell 
+            title="You are logged in"
+            :label="'replicating to '+replication.address+'/'+replication.dbname"
+          >
+          </mt-cell>
+          <mt-button type="primary" @click="logoutfHandler">Logout</mt-button>
+        </span>
+
+        <br>
+        <br>
+
+        <mt-cell 
+          v-if="getLogsSince"
+          title="Retrieving logs from remote since:"
+          :label="getLogsSince.toString()"
+        >
+        </mt-cell>
+        <mt-button type="default" @click="opengetLogsSincePicker">Set starting date</mt-button>
+
+        <mt-datetime-picker
+          ref="getLogsSincePicker"
+          type="datetime"
+          confirmText="Set date time"
+          cancelText="Cancel"
+          @confirm="setLogsSince"
+          @cancel="rollBackLogsSince"
+          v-model="getLogsSince">
+        </mt-datetime-picker>
       </mt-tab-container-item>
 
 
@@ -82,30 +150,77 @@
 </template>
 
 <script>
-import { MessageBox } from 'mint-ui'
+function makeid() {
+  var text = '';
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (var i = 0; i < 6; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  return text;
+}
+
+function shallowClone(obj) {
+  var res = {}
+  Object.keys(obj).map((k) => {
+    if (typeof(obj[k] !== 'object')) {
+      res[k] = obj[k]
+    }
+  })
+  return res
+}
+
+import { MessageBox, Toast } from 'mint-ui'
+import moment from 'moment'
+window.moment = moment
 
 var PouchDB = require('pouchdb').default
+PouchDB.plugin(require('pouchdb-authentication').default)
+
 var DiffCamEngine = require('./diff-cam-engine.js')
+
+var id
+if (!localStorage.getItem('replicaId')) {
+  id = makeid()
+  localStorage.setItem('replicaId', id)
+} else {
+  id = localStorage.getItem('replicaId')
+}
+
+var replication = {
+  address: '',
+  dbname: '',
+  username: ''
+}
+var replicationString = localStorage.getItem('replicationData')
+if (replicationString) {
+  replication = JSON.parse(replicationString)
+}
+replication.password = ''
+
 export default {
   name: 'App',
+  watch: {
+    active (tab) {
+    }
+  },
   data () {
     return {
+      replicaId: id,
       db: null,
       remoteDB: null,
+      logged: null,
       syncHandler: null,
-      active: 'replication',
+      active: 'log',
       cam: {
         enabled: false,
         sensibility: 900,
         sensibilityMax: 1000
       },
       camEngine: DiffCamEngine,
-      replication: {
-        address: '',
-        username: '',
-        password: ''
-      },
-      logs: []
+      replication: replication,
+      logs: [],
+      paginate: ['logs'],
+      getLogsSince: null,
+      getLogsSinceLast: null
     }
   },
   created () {
@@ -115,22 +230,128 @@ export default {
       live: true,
       include_docs: true
     }).on('change', (change) => {
-      this.getLogs(!change.deleted)
+      console.log(change)
+      this.getLogs()
     })
 
   },
   mounted () {
+    if (this.replication && this.replication.address) {
+      this.remoteDB = new PouchDB(this.dbAddress, {adapter: 'http'})
+      this.remoteDB.getSession( (err, response) => {
+
+        // Sometimes Couchdb returns a userCtx
+        // without a user. In this case, logged out
+        if (response && response.userCtx) {
+          if (!response.userCtx.name) {
+            this.logged = false
+            return
+          }
+        }
+
+        if (err) {
+          this.logged = false
+        } else {
+          this.logged = true
+          this.checkForFilterDesignDoc()
+        }
+
+      })
+    }
+    
+    var getLogsSinceTimestamp = localStorage.getItem('getLogsSinceTimestamp')
+    if (!getLogsSinceTimestamp) {
+      this.getLogsSince = new Date()
+      localStorage.setItem('getLogsSinceTimestamp', this.getLogsSince.getTime())
+    } else {
+      this.getLogsSince = moment(parseInt(getLogsSinceTimestamp)).toDate()
+    }
     this.getLogs()
+
   },
   methods: {
-    loginHandler () {
-      this.remoteDB = new PouchDB(this.replication.address)
+    rollBackLogsSince () {
+      this.getLogsSince = this.getLogsSinceLast
+    },
+    setLogsSince () {
+      localStorage.setItem('getLogsSinceTimestamp', this.getLogsSince.getTime())
+      this.setReplication()
+    },
+    opengetLogsSincePicker () {
+      this.getLogsSinceLast = this.getLogsSince
+      this.$refs.getLogsSincePicker.open()
+    },
+    setReplication () {
+      if (this.syncHandler) {
+        this.syncHandler.cancel()
+      }
+
       this.syncHandler = PouchDB.sync(this.db, this.remoteDB, {
         live: true,
-        retry: true
+        retry: true,
+        filter: 'app/logFilter',
+        query_params: {startDatetime: this.getLogsSince.getTime()}        
       }).on('change', (info) => {
         console.log(info)
-        //this.getLogs()
+      })
+
+    },
+    checkForFilterDesignDoc () {
+      this.remoteDB.get('_design/app')
+      .then((response) => {
+        //console.log(response)
+      })
+      .catch((err) => {
+        if (err.name === 'not_found') {
+          this.remoteDB.put({
+            _id: '_design/app',
+            filters: {
+              logFilter: function (doc, req) {
+                return doc._id === '_design/app' || doc.timestamp >= parseInt(req.query.startDatetime);
+              }.toString()
+            }
+          })
+          .then((doc) => {})
+          .catch(() => {})
+          .finally(() => {
+          })
+        }
+      })
+      .finally(() => {
+        this.setReplication()
+      })
+    },
+    logoutfHandler () {
+      this.remoteDB.logout((err, response) => {
+        if (err) {
+          console.log(err)
+        } else {
+          this.logged = false
+        }
+      })
+    },
+    replicationFormHandler () {
+      var formData = shallowClone(this.replication)
+      delete formData.password
+      localStorage.setItem('replicationData', JSON.stringify(formData))
+    },
+    loginHandler (evt) {
+      evt.preventDefault()
+      this.remoteDB = new PouchDB(this.dbAddress, {adapter: 'http'})
+
+      this.remoteDB.login(this.replication.username, this.replication.password)
+      .then((response) => {
+        this.logged = true
+        this.checkForFilterDesignDoc()
+      })
+      .catch((err) => {
+        console.log(err)
+        Toast({
+          message: 'Error: ' + (err.message || err.name)
+        })
+      })
+      .finally(() => {
+        
       })
 
     },
@@ -151,9 +372,8 @@ export default {
       })
     },
     removeLogItem (log) {
-      this.db.get(log.id).then((doc) => {
+      this.db.get(log._id).then((doc) => {
         doc._deleted = true
-        delete this.logs[doc._id]
         return this.db.put(doc)
       }).then((result) => {
         //
@@ -162,33 +382,7 @@ export default {
       })
 
     },
-    setLogItem (doc, scroll) {
-      this.$set(this.logs, doc._id, {})
-      this.$set(this.logs[doc._id], 'id', doc._id)
-      this.$set(this.logs[doc._id], 'date', doc.date)
-      this.$set(this.logs[doc._id], 'timestamp', doc.timestamp)
-      if (doc._attachments) {
-        var blob = doc._attachments['capture.png'].data
-        var url = URL.createObjectURL(blob)
-        this.$set(
-          this.logs[doc._id],
-          'url',
-          url
-        )
-      } else {
-        this.$set(this.logs[doc._id], 'url', null)
-      }
-      if (this.active === 'log' && scroll) {
-        this.$nextTick(() => {
-          window.setTimeout(() => {
-            window.scrollTo({top:1e9})
-          }, 10)
-        })
-      }
-
-    },
-    getLogs (scroll) {
-      scroll = scroll === undefined ? true : scroll
+    getLogs () {
       this.db.allDocs({
         include_docs: true,
         attachments: true,
@@ -196,16 +390,24 @@ export default {
         descending: true
       })
       .then((result) => {
+        var res = []
         result.rows.filter((row) => {
-          return (!row.doc.timestamp ? true :
-            row.doc.timestamp > Date.now()-1000*3600*2) &&
-            !row._deleted
-          ;
+          return !row.deleted
         })
         .map((row) => {
           var doc = row.doc
-          this.setLogItem(doc, scroll)
+          if (doc._id === '_design/app') return
+
+          if (doc._attachments) {
+            var blob = doc._attachments['capture.png'].data
+            var url = URL.createObjectURL(blob)
+            doc.url = url
+          } else {
+            doc.url = null
+          }
+          res.push(doc)
         })
+        this.logs = res
       })
     },
     camEnableHandler () {
@@ -234,7 +436,8 @@ export default {
     capture (payload) {
       if (payload.score > this.cam.sensibilityMax - this.cam.sensibility) {
         //console.log(payload.getURL())
-        this.db.post({
+        this.db.put({
+          _id: this.replicaId+'_'+Date.now(),
           type: 'imageCapture',
           timestamp: Date.now(),
           date: Date(),
@@ -266,16 +469,9 @@ export default {
     }
   },
   computed: {
-    logList () {
-      var res = Object.keys(this.logs).map((item) => {
-        var logItem = this.logs[item]
-        return {
-          id: logItem.id,
-          url: logItem.url,
-          date: logItem.date
-        }
-      })
-      return res
+    dbAddress () {
+      if (!this.replication) return null
+      return this.replication.address +'/'+ this.replication.dbname
     }
   }
 }
@@ -289,6 +485,9 @@ export default {
   text-align: center;
   color: #2c3e50;
   padding-top: 60px;
+}
+.mint-navbar {
+  background: #eaf4f7b5;
 }
 .mint-tab-item-label {
   font-size: 16px;
@@ -307,6 +506,35 @@ export default {
 .sensibility-cell .mint-cell-value {
   flex: 4;
   position: relative;
+}
+
+
+
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+
+.paginate-links.logs {
+  user-select: none;
+}
+
+ul.paginate-links.logs li {
+  cursor: pointer;
+}
+
+ul.paginate-links.logs li.active {
+  font-weight: bold;
+}
+ul.paginate-links.logs li.disabled {
+  color: #ccc;
+  cursor: no-drop;
 }
 
 </style>

@@ -4474,6 +4474,10 @@ mocha@^3.2.0:
     mkdirp "0.5.1"
     supports-color "3.1.2"
 
+moment@^2.22.1:
+  version "2.22.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.1.tgz#529a2e9bf973f259c9643d237fda84de3a26e8ad"
+
 move-concurrently@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/move-concurrently/-/move-concurrently-1.0.1.tgz#be2c005fda32e0b29af1f05d7c4b33214c701f92"
@@ -5438,6 +5442,64 @@ postcss@^6.0.0, postcss@^6.0.1, postcss@^6.0.17, postcss@^6.0.8:
     source-map "^0.6.1"
     supports-color "^5.4.0"
 
+pouchdb-ajax@~6.4.0:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/pouchdb-ajax/-/pouchdb-ajax-6.4.3.tgz#642aea957925cb9fcd6493d2f39820c34bca3e88"
+  dependencies:
+    buffer-from "0.1.1"
+    pouchdb-binary-utils "6.4.3"
+    pouchdb-errors "6.4.3"
+    pouchdb-promise "6.4.3"
+    pouchdb-utils "6.4.3"
+    request "2.83.0"
+
+pouchdb-authentication@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/pouchdb-authentication/-/pouchdb-authentication-1.1.2.tgz#cb8a2be1dac380efdb8865f114680f92c25886ce"
+  dependencies:
+    inherits "2.0.3"
+    pouchdb-ajax "~6.4.0"
+    pouchdb-binary-utils "~6.4.0"
+    pouchdb-promise "~6.4.0"
+    pouchdb-utils "~6.4.0"
+    url-join "4.0.0"
+    url-parse "1.2.0"
+
+pouchdb-binary-utils@6.4.3, pouchdb-binary-utils@~6.4.0:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/pouchdb-binary-utils/-/pouchdb-binary-utils-6.4.3.tgz#ba6d9b9d289a359d47b53c1ec017fd9715a777a9"
+  dependencies:
+    buffer-from "0.1.1"
+
+pouchdb-collections@6.4.3:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/pouchdb-collections/-/pouchdb-collections-6.4.3.tgz#2b70ca3143134c361dba6e466518b4f4d8e92ff4"
+
+pouchdb-errors@6.4.3:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/pouchdb-errors/-/pouchdb-errors-6.4.3.tgz#9fa4a13f64ee50c8d593e3235b18b1458977f8d1"
+  dependencies:
+    inherits "2.0.3"
+
+pouchdb-promise@6.4.3, pouchdb-promise@~6.4.0:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/pouchdb-promise/-/pouchdb-promise-6.4.3.tgz#74516f4acf74957b54debd0fb2c0e5b5a68ca7b3"
+  dependencies:
+    lie "3.1.1"
+
+pouchdb-utils@6.4.3, pouchdb-utils@~6.4.0:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/pouchdb-utils/-/pouchdb-utils-6.4.3.tgz#aeb6bb8cbd8cf2d9f04e499bc3b70d1ce2a6c78a"
+  dependencies:
+    argsarray "0.0.1"
+    clone-buffer "1.0.0"
+    immediate "3.0.6"
+    inherits "2.0.3"
+    pouchdb-collections "6.4.3"
+    pouchdb-errors "6.4.3"
+    pouchdb-promise "6.4.3"
+    uuid "3.2.1"
+
 pouchdb@^6.4.3:
   version "6.4.3"
   resolved "https://registry.yarnpkg.com/pouchdb/-/pouchdb-6.4.3.tgz#077e812a054ac44e13622a64e0c802325d1d44ad"
@@ -5626,6 +5688,10 @@ querystringify@0.0.x:
 querystringify@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.0.0.tgz#fa3ed6e68eb15159457c89b37bc6472833195755"
+
+querystringify@~1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-1.0.0.tgz#6286242112c5b712fa654e526652bf6a13ff05cb"
 
 raf.js@0.0.4:
   version "0.0.4"
@@ -5962,7 +6028,7 @@ require-object-coercible-x@^1.4.1, require-object-coercible-x@^1.4.3:
   dependencies:
     is-nil-x "^1.4.2"
 
-requires-port@1.0.x, requires-port@^1.0.0:
+requires-port@1.0.x, requires-port@^1.0.0, requires-port@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
 
@@ -7008,6 +7074,10 @@ urix@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz#da937f7a62e21fec1fd18d49b35c2935067a6c72"
 
+url-join@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/url-join/-/url-join-4.0.0.tgz#4d3340e807d3773bda9991f8305acdcc2a665d2a"
+
 url-loader@^0.5.8:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/url-loader/-/url-loader-0.5.9.tgz#cc8fea82c7b906e7777019250869e569e995c295"
@@ -7021,6 +7091,13 @@ url-parse@1.0.x:
   dependencies:
     querystringify "0.0.x"
     requires-port "1.0.x"
+
+url-parse@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.2.0.tgz#3a19e8aaa6d023ddd27dcc44cb4fc8f7fec23986"
+  dependencies:
+    querystringify "~1.0.0"
+    requires-port "~1.0.0"
 
 url-parse@^1.1.8:
   version "1.4.0"
@@ -7138,6 +7215,12 @@ vue-loader@^13.3.0:
     vue-style-loader "^3.0.0"
     vue-template-es2015-compiler "^1.6.0"
 
+vue-paginate@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/vue-paginate/-/vue-paginate-3.6.0.tgz#254aa144e4f92efe4b2c89fb04a6399e19319c0d"
+  dependencies:
+    vue "2.3.3"
+
 vue-style-loader@^3.0.0, vue-style-loader@^3.0.1:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/vue-style-loader/-/vue-style-loader-3.1.2.tgz#6b66ad34998fc9520c2f1e4d5fa4091641c1597a"
@@ -7155,6 +7238,10 @@ vue-template-compiler@^2.5.2:
 vue-template-es2015-compiler@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.6.0.tgz#dc42697133302ce3017524356a6c61b7b69b4a18"
+
+vue@2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/vue/-/vue-2.3.3.tgz#d1eaa8fde5240735a4563e74f2c7fead9cbb064c"
 
 vue@^2.5.2:
   version "2.5.16"

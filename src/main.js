@@ -3,9 +3,12 @@
 import Vue from 'vue'
 import MintUI from 'mint-ui'
 import 'mint-ui/lib/style.css'
+import VuePaginate from 'vue-paginate'
+
 import App from './App'
 
 Vue.use(MintUI)
+Vue.use(VuePaginate)
 
 Vue.config.productionTip = false
 

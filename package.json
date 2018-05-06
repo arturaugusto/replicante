@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "mint-ui": "^2.2.13",
+    "moment": "^2.22.1",
     "pouchdb": "^6.4.3",
-    "vue": "^2.5.2"
+    "pouchdb-authentication": "^1.1.2",
+    "vue": "^2.5.2",
+    "vue-paginate": "^3.6.0"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
