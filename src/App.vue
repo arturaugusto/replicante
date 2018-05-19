@@ -1,11 +1,20 @@
 <template>
   <div id="app">
 
-    <mt-navbar v-model="active" fixed>
-      <mt-tab-item id="log">Log</mt-tab-item>
-      <mt-tab-item id="camera">Camera</mt-tab-item>
-      <mt-tab-item id="replication">Replication</mt-tab-item>
-    </mt-navbar>
+    <mt-tabbar v-model="active" fixed>
+      <mt-tab-item id="log">
+        <svg slot="icon" :fill=" active === 'log' ? '#26a2ff' : 'black'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M8 21c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM8 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 24c-1.67 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.33-3-3-3zm6 5h28v-4H14v4zm0-12h28v-4H14v4zm0-16v4h28v-4H14z"/></svg>
+        Log
+      </mt-tab-item>
+      <mt-tab-item id="camera">
+        <svg slot="icon" :fill=" active === 'camera' ? '#26a2ff' : 'black'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="6.4"/><path d="M18 4l-3.66 4H8c-2.21 0-4 1.79-4 4v24c0 2.21 1.79 4 4 4h32c2.21 0 4-1.79 4-4V12c0-2.21-1.79-4-4-4h-6.34L30 4H18zm6 30c-5.52 0-10-4.48-10-10s4.48-10 10-10 10 4.48 10 10-4.48 10-10 10z"/></svg>
+        Camera
+      </mt-tab-item>
+      <mt-tab-item id="replication">
+        <svg slot="icon" :fill=" active === 'replication' ? '#26a2ff' : 'black'" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M24 8V2l-8 8 8 8v-6c6.63 0 12 5.37 12 12 0 2.03-.51 3.93-1.39 5.61l2.92 2.92C39.08 30.05 40 27.14 40 24c0-8.84-7.16-16-16-16zm0 28c-6.63 0-12-5.37-12-12 0-2.03.51-3.93 1.39-5.61l-2.92-2.92C8.92 17.95 8 20.86 8 24c0 8.84 7.16 16 16 16v6l8-8-8-8v6z"/></svg>
+        Sync
+      </mt-tab-item>
+    </mt-tabbar>
 
     <mt-tab-container v-model="active" :swipeable="false">
 
@@ -297,28 +306,19 @@ export default {
 
     },
     checkForFilterDesignDoc () {
-      this.remoteDB.get('_design/app')
-      .then((response) => {
-        //console.log(response)
-      })
-      .catch((err) => {
+      this.remoteDB.get('_design/app').then((response) => {
+        this.setReplication()
+      }).catch((err) => {
         if (err.name === 'not_found') {
-          this.remoteDB.put({
+          return this.remoteDB.put({
             _id: '_design/app',
             filters: {
-              logFilter: function (doc, req) {
+              logFilter: (function (doc, req) {
                 return doc._id === '_design/app' || doc.timestamp >= parseInt(req.query.startDatetime);
-              }.toString()
+              }).toString()
             }
           })
-          .then((doc) => {})
-          .catch(() => {})
-          .finally(() => {
-          })
         }
-      })
-      .finally(() => {
-        this.setReplication()
       })
     },
     logoutfHandler () {
@@ -484,7 +484,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  padding-top: 60px;
+  padding-bottom: 60px;
 }
 .mint-navbar {
   background: #eaf4f7b5;
