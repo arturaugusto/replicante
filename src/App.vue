@@ -55,7 +55,7 @@
               :label="log._id"
             >
             </mt-cell>
-            <img :src="log.url">
+            <img :src="log.url" class="widthSet">
             <div class="log-actions">
               <mt-button size="small" type="danger" @click="removeLogHandler(log)">
                 &times Remove
@@ -113,7 +113,7 @@
       <!-- Replication -->
 
       <mt-tab-container-item id="replication">
-        <form v-if="logged === false" id="replication-form" @change="replicationFormHandler">
+        <form v-if="!logged" id="replication-form" @change="replicationFormHandler">
           <mt-field label="address" placeholder="Input server address" type="url" v-model="replication.address"></mt-field>
           <mt-field label="db name" placeholder="Input database name" v-model="replication.dbname"></mt-field>
           <mt-field label="username" placeholder="Input username" v-model="replication.username"></mt-field>
@@ -535,6 +535,10 @@ ul.paginate-links.logs li.active {
 ul.paginate-links.logs li.disabled {
   color: #ccc;
   cursor: no-drop;
+}
+
+.widthSet {
+  max-width: 90%;
 }
 
 </style>
